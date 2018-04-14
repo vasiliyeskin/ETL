@@ -18,33 +18,51 @@ import java.util.stream.IntStream;
 
 public class SpringMain {
 
+    // field for testing
     public static final int THREAD_NUMBER = 10;
     public final static ExecutorService executor = Executors.newFixedThreadPool(SpringMain.THREAD_NUMBER);
 
 
     public static void main(String[] args) throws IOException, InterruptedException, ExecutionException {
 
+        final int chunk;
+        int bufferchunk = 50;
+        if(args.length != 0 && args[0] != null) {
+            try {
+                bufferchunk = Integer.parseInt(args[0]);
+            } catch (NumberFormatException e) {
+                System.out.println("Chunk must be integer");
+            }
+        }
+        chunk = bufferchunk;
+        System.out.println("Chunk equals " + chunk);
+
+
         long begin_time = System.currentTimeMillis();
         try (GenericXmlApplicationContext appCtx = new GenericXmlApplicationContext()) {
             appCtx.load("spring/spring-app.xml", "spring/spring-db.xml");
             appCtx.refresh();
 
+            // Get beans of services
             System.out.println("Bean definition names: " + Arrays.toString(appCtx.getBeanDefinitionNames()));
             DataSourceService sourceService = appCtx.getBean(DataSourceService.class);
             CopyDataSourceService copyDataSourceService = appCtx.getBean(CopyDataSourceService.class);
             DataDestinationService dataDestinationService = appCtx.getBean(DataDestinationService.class);
 
-
+            // Starting or restarting process.
+            // Get list of source flight numbers
             List<String> distinctFlightNumbers = sourceService.getDistinctFlightNumber();
+            // Get list of saved flight numbers
             List<String> copyBuffer = copyDataSourceService.getDistinctFlightNumber();
+            // Deleting list of saved flight numbers from list of source flight numbers
             distinctFlightNumbers.removeAll(copyBuffer);
 
             int threadNumber = Runtime.getRuntime().availableProcessors() - 1;
             final int dfnSize = distinctFlightNumbers.size();
-            final int chunk = 10;
             final int bunchSize = dfnSize / chunk + 1;
             System.out.println("Total bunches number " + bunchSize);
 
+            // Main parallel process
             new ForkJoinPool(threadNumber).submit(
                     () -> IntStream.range(0, bunchSize)
                             .parallel()
@@ -59,8 +77,12 @@ public class SpringMain {
                                     if (buffer.getId() != null)
                                         cdfs.add(new CopyDataSource(buffer));
                                 }
+
+                                // All records deleting of current flight number and saving one record in source
                                 sourceService.deleteAllFlightNumbersAndSaveTransformed(flightNumbers, DataSourceUtil.converCopyDataSourcesToDataSources(cdfs));
+                                // Save record in destination data table
                                 dataDestinationService.saveAll(DataSourceUtil.converCopyDataSourcesToDataDestinations(cdfs));
+                                // Saving record in copy of source on purpose storing the processed states
                                 copyDataSourceService.saveList(cdfs);
 
                                 System.out.println("Bunch № " + bunch);
