@@ -12,7 +12,9 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.*;
+import java.util.stream.IntStream;
 
 public class SpringMain {
 
@@ -33,69 +35,39 @@ public class SpringMain {
             DataDestinationService dataDestinationService = appCtx.getBean(DataDestinationService.class);
 
 
-            List<String> distinctFlightNumber = sourceService.getDistinctFlightNumber();
-            int total = distinctFlightNumber.size();
+            List<String> distinctFlightNumbers = sourceService.getDistinctFlightNumber();
             List<String> copyBuffer = copyDataSourceService.getDistinctFlightNumber();
-            int executed = copyBuffer.size();
-            distinctFlightNumber.removeAll(copyBuffer);
-            System.out.println((executed/(double)total)*100 + "% completed");
+            distinctFlightNumbers.removeAll(copyBuffer);
 
+            int threadNumber = Runtime.getRuntime().availableProcessors() - 1;
+            final int dfnSize = distinctFlightNumbers.size();
+            final int chunk = 10;
+            final int bunchSize = dfnSize / chunk + 1;
+            System.out.println("Total bunches number " + bunchSize);
 
-            int chunk2 = 100;
-            List<CopyDataSource> copyDataSources = new ArrayList<>();
-            List<Callable<List<CopyDataSource>>> callables = new ArrayList<>();
-            final int dfnSize = distinctFlightNumber.size();
-            final int chunk = 0;
-            int j = 0;
+            new ForkJoinPool(threadNumber).submit(
+                    () -> IntStream.range(0, bunchSize)
+                            .parallel()
+                            .forEach(bunch -> {
+                                DataSource buffer;
+                                List<CopyDataSource> cdfs = new ArrayList<>();
+                                int end = (bunch + 1) * chunk < dfnSize ? (bunch + 1) * chunk : dfnSize;
+                                List<String> flightNumbers = distinctFlightNumbers.subList(bunch * chunk, end);
+                                Map<String, List<DataSource>> dataSources = sourceService.getByFlightNumbers(flightNumbers);
+                                for (Map.Entry<String, List<DataSource>> entry : dataSources.entrySet()) {
+                                    buffer = DataSourceUtil.transformToOne(entry.getValue());
+                                    if (buffer.getId() != null)
+                                        cdfs.add(new CopyDataSource(buffer));
+                                }
+                                sourceService.deleteAllFlightNumbersAndSaveTransformed(flightNumbers, DataSourceUtil.converCopyDataSourcesToDataSources(cdfs));
+                                dataDestinationService.saveAll(DataSourceUtil.converCopyDataSourcesToDataDestinations(cdfs));
+                                copyDataSourceService.saveList(cdfs);
 
-            while(j < dfnSize / chunk + 1 ) {
-                for (int k = 0; k < SpringMain.THREAD_NUMBER; k++) {
-                    final int bunch = j;
-                    callables.add(() ->
-                    {
-                        List<CopyDataSource> cdfs = new ArrayList<>();
-                        DataSource buffer;
-                        for (int i = bunch * chunk; (i < (bunch + 1) * chunk) && (i < dfnSize); i++) {
-                            String flightNumber = distinctFlightNumber.get(i);
-                            List<DataSource> dataSources = sourceService.getByFlightNumber(flightNumber);
-
-                            buffer = DataSourceUtil.transformToOne(dataSources);
-                            cdfs.add(new CopyDataSource(buffer));
-                        }
-                        /*copyDataSourceService.saveList(cdfs);
-                        sourceService.deleteAllFlightNumbersAndSaveTransformed(DataSourceUtil.converCopyDataSourcesToDataSources(cdfs));*/
-
-                        return cdfs;
-                    });
-                    j++;
-                    if(j > dfnSize / chunk)break;
-                }
-
-//                executor.invokeAll(callables);
-                List<Future<List<CopyDataSource>>> futures = executor.invokeAll(callables);
-                for (Future<List<CopyDataSource>> f: futures) {
-                    copyDataSources.addAll(f.get());
-                }
-
-                copyDataSourceService.saveList(copyDataSources);
-//                sourceService.deleteAllFlightNumbersAndSaveTransformed(DataSourceUtil.converCopyDataSourcesToDataSources(copyDataSources));
-
-                executed += copyDataSources.size();
-                System.out.println((executed/(double)total)*100 + "% completed");
-
-                callables = new ArrayList<>();
-                copyDataSources = new ArrayList<>();
-            }
-
-            copyDataSources = copyDataSourceService.getAll();
-            sourceService.deleteAllFlightNumbersAndSaveTransformed(DataSourceUtil.converCopyDataSourcesToDataSources(copyDataSources));
+                                System.out.println("Bunch № " + bunch);
+                            })).get();
         }
 
-        System.out.printf("I'm alive!!!");
-
         System.out.println("Duration of operations is " + (System.currentTimeMillis() - begin_time));
-
-        executor.shutdown();
     }
 
 

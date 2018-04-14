@@ -85,13 +85,8 @@ public class SpringMainTest {
                             sourceService.deleteAllFlightNumbersAndSaveTransformed(flightNumbers, DataSourceUtil.converCopyDataSourcesToDataSources(cdfs));
                             dataDestinationService.saveAll(DataSourceUtil.converCopyDataSourcesToDataDestinations(cdfs));
 
-                            /*for (int i = bunch * chunk; (i < (bunch + 1) * chunk) && (i < dfnSize); i++) {
-                                *//*String flightNumber = distinctFlightNumbers.get(i);
-                                List<DataSource> dataSources = sourceService.getByFlightNumber(flightNumber);*//*
-                            }*/
                             System.out.println("Bunch № " + bunch);
                         })).get();
-//        List<CopyDataSource> copyDataSources = copyDataSourceService.getAll();
     }
 
     @Test
@@ -125,10 +120,7 @@ public class SpringMainTest {
                         if(buffer.getId() != null)
                             cdfs.add(new CopyDataSource(buffer));
                     }
-                    /*for (int i = bunch * chunk; (i < (bunch + 1) * chunk) && (i < dfnSize); i++) {
-                        String flightNumber = distinctFlightNumbers.get(i);
-                        List<DataSource> dataSources = sourceService.getByFlightNumber(flightNumber);
-                    }*/
+
                     return cdfs;
                 });
                 j++;

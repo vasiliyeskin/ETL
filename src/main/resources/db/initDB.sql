@@ -101,18 +101,3 @@ CREATE TABLE IF NOT EXISTS aenaflight_source
   source_data             TEXT,
   created_at              TIMESTAMP WITHOUT TIME ZONE NOT NULL
 );
-
-
-CREATE TABLE IF NOT EXISTS bufferedTable
-(
-  id                      BIGSERIAL                   NOT NULL PRIMARY KEY,
-  adep                    CHARACTER VARYING(8)        NOT NULL,
-  ades                    CHARACTER VARYING(8)        NOT NULL,
-  flight_code             CHARACTER VARYING(8)        NOT NULL,
-  flight_number           CHARACTER VARYING(8)        NOT NULL,
-  status_info             CHARACTER VARYING(256)      NOT NULL,
-  schd_dep_lt             TIMESTAMP WITHOUT TIME ZONE NOT NULL,
-  schd_arr_lt             TIMESTAMP WITHOUT TIME ZONE NOT NULL,
-  flt_leg_seq_no          INTEGER                     NOT NULL,
-  created_at              TIMESTAMP WITHOUT TIME ZONE NOT NULL
-);
