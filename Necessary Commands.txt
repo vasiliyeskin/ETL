@@ -1,0 +1,7 @@
+In SQL Shell (psql)
+
+%%% if encoding not good for pgadmin and SQL Shell
+SET client_encoding = 'ISO_8859_5';
+
+%%% create and inserte data from dump file
+\i G:/JAVA/copy_aenaflight.sql 
