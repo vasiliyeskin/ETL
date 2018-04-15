@@ -18,7 +18,7 @@ import java.util.stream.IntStream;
 
 public class SpringMain {
 
-    // field for testing
+    // fields for testing
     public static final int THREAD_NUMBER = 10;
     public final static ExecutorService executor = Executors.newFixedThreadPool(SpringMain.THREAD_NUMBER);
 
@@ -88,7 +88,7 @@ public class SpringMain {
                             })).get();
         }
 
-        System.out.println("Duration of operations is " + (System.currentTimeMillis() - begin_time));
+        System.out.println("Duration of operations is " + (System.currentTimeMillis() - begin_time)/1000 + " seconds");
         executor.shutdown();
     }
 
@@ -96,121 +96,9 @@ public class SpringMain {
 
     /*public static void main(String[] args) throws IOException {
 
-        long begin_time = System.currentTimeMillis();
-        try (GenericXmlApplicationContext appCtx = new GenericXmlApplicationContext()) {
-            appCtx.load("spring/spring-app.xml", "spring/spring-db.xml");
-            appCtx.refresh();
-
-            System.out.println("Bean definition names: " + Arrays.toString(appCtx.getBeanDefinitionNames()));
-            DataSourceService sourceService = appCtx.getBean(DataSourceService.class);
-            CopyDataSourceService copyDataSourceService = appCtx.getBean(CopyDataSourceService.class);
-            DataDestinationService dataDestinationService =appCtx.getBean(DataDestinationService.class);
-
-*//*
-            List<DataSource> sources = sourceService.getAllByGroupByFlightNumber();
-            *//*
-     *//*List<DataSource> differentFlightNubers = sources
-                    .stream()
-                    .filter(x->)*//**//*
-
-
-     *//*
-     *//*            List<String> differentFlightNubers = new ArrayList<>();
-            String flagFlightNumber = "";
-            for (DataSource ds : sources) {
-                if (!flagFlightNumber.equals(ds.getFlightnumber()) && !differentFlightNubers.contains(ds.getFlightnumber())) {
-                    differentFlightNubers.add(ds.getFlightnumber());
-                    flagFlightNumber = ds.getFlightnumber();
-                }
-            }
-
-            differentFlightNubers.forEach(System.out::println);
-            sourceService.getAllByGroupByFlightNumber().forEach(ds -> System.out.println(ds.getFlightnumber() + " " + ds.getArr_apt_name_es()));
-            System.out.println(differentFlightNubers.size());*//**//*
-
-
-
-
-            String flagFN = "";
-            int chunk = 100;
-            List<CopyDataSource> copyDataSources = new ArrayList<>();
-            DataSource buffer;
-            List<DataSource> sourceDeque = new ArrayList<>();
-
-            for (DataSource ds : sources) {
-                if (flagFN.equals(ds.getFlightnumber())) {
-                    sourceDeque.add(ds);
-                }
-                else
-                {
-                    if(sourceDeque.size() != 0) {
-                        buffer = DataSourceUtil.transformToOne(sourceDeque);
-                        copyDataSources.add(new CopyDataSource(buffer));
-                        chunk--;
-
-                        //dataSourceService.create(new CopyDataSource(buffer));
-                        if(chunk<1) {
-                            copyDataSourceService.saveList(copyDataSources);
-                            chunk = 100;
-                            copyDataSources = new ArrayList<>();
-                        }
-                    }
-
-                    flagFN = ds.getFlightnumber();
-                    sourceDeque = new ArrayList<>();
-                    sourceDeque.add(ds);
-                }
-            }
-            if(copyDataSources.size() != 0)copyDataSourceService.saveList(copyDataSources);
-*//*
-
-            List<String> distinctFlightNumber = sourceService.getDistinctFlightNumber();
-            List<String> copyBuffer = copyDataSourceService.getDistinctFlightNumber();
-            distinctFlightNumber.removeAll(copyBuffer);
-
-
-            int chunk = 100;
-            List<CopyDataSource> copyDataSources = new ArrayList<>();
-            DataSource buffer;
-
-            for (int i = 0; i < distinctFlightNumber.size(); i++) {
-                String flightNumber = distinctFlightNumber.get(i);
-                List<DataSource> dataSources = sourceService.getByFlightNumber(flightNumber);
-
-*//*                // delete duplicates
-                dataSources = dataSources.stream()
-                        .distinct()
-                        .collect(Collectors.toList());*//*
-
-                buffer = DataSourceUtil.transformToOne(dataSources);
-                copyDataSources.add(new CopyDataSource(buffer));
-                chunk--;
-
-                if (chunk < 1) {
-                    copyDataSourceService.saveList(copyDataSources);
-                    sourceService.deleteAllFlightNumbersAndSaveTransformed(DataSourceUtil.converCopyDataSourcesToDataSources(copyDataSources));
-
-                    // dataDestinationService.saveAll(DataSourceUtil.converCopyDataSourcesToDataDestinations(copyDataSources));
-
-                    copyDataSources = new ArrayList<>();
-                    chunk = 100;
-                }
-            }
-            if(copyDataSources.size() != 0)copyDataSourceService.saveList(copyDataSources);
-
-//            for (DataSource ds: sourceService.getByFlightNumber("0516"))
-//            {
-//                System.out.println(ds.getFlightnumber() + " " + ds.getArr_apt_name_es());
-//            }
-        }
-
-        System.out.printf("I'm alive!!!");
-
-        System.out.println("Duration of operations is " + (System.currentTimeMillis() - begin_time));
-
         // create short dump
 //        printFile("E:\\aenaflight_2017_01_dump_20180327_1125.sql");
-//        copyFile("G:\\JAVA\\aenaflight_2017_01_dump_20180327_1125.sql", "G:\\JAVA\\copy_aenaflight.sql");
+//        copyFile("G:\\JAVA\\aenaflight_2017_01_dump_20180327_1125.sql", "G:\\JAVA\\copy_aenaflight.sql", 10000);
     }*/
 
     public static void printFile(String filename) throws IOException {
@@ -223,11 +111,10 @@ public class SpringMain {
         }
     }
 
-    public static void copyFile(String filename, String fileoutput) throws IOException {
+    public static void copyFile(String filename, String fileoutput, int numberLines) throws IOException {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(filename)));
              BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileoutput)))) {
             String line = new String();
-            int numberLines = 100000;
             while ((line = reader.readLine()) != null && numberLines-- > 0) {
                 System.out.println(line);
                 writer.newLine();

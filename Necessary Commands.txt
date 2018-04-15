@@ -1,5 +1,10 @@
 In SQL Shell (psql)
 
+%%% Database properties
+database.url=jdbc:postgresql://localhost:5432/ETL
+database.username=user
+database.password=password
+
 %%% if encoding not good for pgadmin and SQL Shell
 SET client_encoding = 'ISO_8859_5';
 
@@ -11,8 +16,9 @@ SET client_encoding = 'ISO_8859_5';
 maven clean compile assembly:single
 
 %%% run with maven on Window or nix (from directory with pom)
-mvn exec:java -Dexec.mainClass="ru.back.etl.SpringMain"
+%%% -Dexec.cleanupDaemonThreads=false   -blocking of threads destroying
+mvn exec:java -Dexec.mainClass="ru.back.etl.SpringMain" -Dexec.cleanupDaemonThreads=false
 
 %%% with chunk 10
-mvn exec:java -Dexec.mainClass="ru.back.etl.SpringMain" -Dexec.args="10"
+mvn exec:java -Dexec.mainClass="ru.back.etl.SpringMain" -Dexec.cleanupDaemonThreads=false -Dexec.args="10"
 
