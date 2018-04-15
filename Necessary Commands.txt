@@ -5,3 +5,14 @@ SET client_encoding = 'ISO_8859_5';
 
 %%% create and inserte data from dump file
 \i G:/JAVA/copy_aenaflight.sql 
+
+
+%%% maven compiler
+maven clean compile assembly:single
+
+%%% run with maven on Window or nix (from directory with pom)
+mvn exec:java -Dexec.mainClass="ru.back.etl.SpringMain"
+
+%%% with chunk 10
+mvn exec:java -Dexec.mainClass="ru.back.etl.SpringMain" -Dexec.args="10"
+

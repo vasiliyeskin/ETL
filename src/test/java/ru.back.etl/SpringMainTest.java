@@ -83,7 +83,7 @@ public class SpringMainTest {
                             }
                             copyDataSourceService.saveList(cdfs);
                             sourceService.deleteAllFlightNumbersAndSaveTransformed(flightNumbers, DataSourceUtil.converCopyDataSourcesToDataSources(cdfs));
-                            dataDestinationService.saveAll(DataSourceUtil.converCopyDataSourcesToDataDestinations(cdfs));
+                            dataDestinationService.saveAll(DataSourceUtil.convertCopyDataSourcesToDataDestinations(cdfs));
 
                             System.out.println("Bunch № " + bunch);
                         })).get();
@@ -134,7 +134,7 @@ public class SpringMainTest {
 
             copyDataSourceService.saveList(copyDataSources);
             sourceService.deleteAllFlightNumbersAndSaveTransformed(DataSourceUtil.converCopyDataSourcesToDataSources(copyDataSources));
-            dataDestinationService.saveAll(DataSourceUtil.converCopyDataSourcesToDataDestinations(copyDataSources));
+            dataDestinationService.saveAll(DataSourceUtil.convertCopyDataSourcesToDataDestinations(copyDataSources));
             callables = new ArrayList<>();
             copyDataSources = new ArrayList<>();
         }

@@ -111,7 +111,7 @@ public class DataSourceUtil {
         return aloneSource;
     }
 
-    public static List<DataDestination> converCopyDataSourcesToDataDestinations(List<CopyDataSource> sourceList)
+    public static List<DataDestination> convertCopyDataSourcesToDataDestinations(List<CopyDataSource> sourceList)
     {
         List<DataDestination> dataDestinations = new ArrayList<>();
         for (CopyDataSource cds: sourceList) {

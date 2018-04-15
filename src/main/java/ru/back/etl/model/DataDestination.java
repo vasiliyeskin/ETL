@@ -85,6 +85,8 @@ public class DataDestination {
             this.schd_dep_lt = DataSourceUtil.dateFormat.parse((cds.getSchd_dep_only_date_lt() + " " + cds.getSchd_dep_only_time_lt()));
             this.schd_arr_lt = DataSourceUtil.dateFormat.parse((cds.getSchd_arr_only_date_lt() + " " + cds.getSchd_arr_only_time_lt()));
         } catch (ParseException e) {
+            this.schd_dep_lt = new Date(0L);
+            this.schd_arr_lt = new Date(0L);
         }
 
         try {

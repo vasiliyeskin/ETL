@@ -22,7 +22,6 @@ public class SpringMain {
     public static final int THREAD_NUMBER = 10;
     public final static ExecutorService executor = Executors.newFixedThreadPool(SpringMain.THREAD_NUMBER);
 
-
     public static void main(String[] args) throws IOException, InterruptedException, ExecutionException {
 
         final int chunk;
@@ -81,7 +80,7 @@ public class SpringMain {
                                 // All records deleting of current flight number and saving one record in source
                                 sourceService.deleteAllFlightNumbersAndSaveTransformed(flightNumbers, DataSourceUtil.converCopyDataSourcesToDataSources(cdfs));
                                 // Save record in destination data table
-                                dataDestinationService.saveAll(DataSourceUtil.converCopyDataSourcesToDataDestinations(cdfs));
+                                dataDestinationService.saveAll(DataSourceUtil.convertCopyDataSourcesToDataDestinations(cdfs));
                                 // Saving record in copy of source on purpose storing the processed states
                                 copyDataSourceService.saveList(cdfs);
 
@@ -90,6 +89,7 @@ public class SpringMain {
         }
 
         System.out.println("Duration of operations is " + (System.currentTimeMillis() - begin_time));
+        executor.shutdown();
     }
 
 
